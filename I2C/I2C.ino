@@ -5,6 +5,7 @@
 #define Fscl 100000  //100kHZ
 #define BAUD 9600
 #define MYUBRR ((Fcpu/16/BAUD)-1)
+#define displays 4
 
 void USART_Init(unsigned int ubrr){
   /* Set baud rate */
@@ -77,10 +78,14 @@ void i2c_setup(){
   Print("OK1\n");
   i2c(0, 0x0A, 0x0F); //brightness=max
   Print("OK2\n");
-  i2c(0, 0x0B, 0x01); //scan limit: display digits 0-1
+  i2c(0, 0x0B, 0x03); //scan limit: display digits 0-3
   Print("OK3\n");
   i2c(0, 0x0C, 0x01);  //shutdown: normal operation
   Print("OK4\n");
+  i2c(0, 0x01, 0);
+  i2c(0, 0x02, 0);
+  i2c(0, 0x03, 0);
+  i2c(0, 0x04, 0);
 }
 
 void setup() {
@@ -93,30 +98,26 @@ void setup() {
   i2c_setup();
   Print("SETUP\n");
   Print("END\n");
-  i2c(0, 0x01, 0);
-  i2c(0, 0x02, 0);
 }
 
 int cnt = 0; //nr cate cifre modulo nr_displays apar
-int nr1 = 0;
-int nr2 = 0;
+int nr[displays];
 
 void loop() {
   unsigned char input=USART_Receive();
   if(input>='0' && input<='9'){
-    if(cnt==0)
-      nr2 = input - '0';
-    else
-      nr1 = input - '0';
-    cnt = (cnt + 1) % 2;
+    nr[displays-cnt-1] = input - '0';
+    cnt = (cnt + 1) % displays;
   }
   if(input=='\n' && cnt){
-    nr1 = nr2;
-    nr2 = 0;
+    for(int i=0;i<=cnt-1;i++)
+      nr[i] = nr[i+displays-cnt];
+    for(int i=cnt;i<displays;i++)
+      nr[i] = 0;
   }
   if(input=='\n'){
-    i2c(0, 0x01, nr1);
-    i2c(0, 0x02, nr2);
+    for(unsigned int i=0;i<displays;i++)
+      i2c(0, i+1, nr[i]);
     cnt = 0;
   }
 }
