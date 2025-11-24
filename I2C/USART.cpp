@@ -24,3 +24,13 @@ void USART_Transmit(unsigned char data){
   /* Put data into buffer, sends the data */
   UDR0 = data;
 }
+
+void Print(char msg[]){
+  for(int i=0;msg[i];i++)
+    USART_Transmit(msg[i]);
+    USART_Transmit('\r');
+}
+
+void ERROR(char err[]){
+  Print(err);
+}

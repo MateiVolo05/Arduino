@@ -9,5 +9,7 @@
 void USART_Init(unsigned int ubrr);
 unsigned char USART_Receive(void);
 void USART_Transmit(unsigned char data);
+void Print(char msg[]);
+void ERROR(char err[]);
 
 #endif
